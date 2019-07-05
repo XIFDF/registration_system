@@ -3,6 +3,7 @@ package com.xifdf.registration_system.aspect;
 import com.xifdf.registration_system.dao.LogDao;
 import com.xifdf.registration_system.pojo.Log;
 import org.aspectj.lang.annotation.After;
+import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,7 @@ public class LoggerAspect {
     @Pointcut("execution(public * com.xifdf.registration_system.service.*.deleteSchool(..))")
     public void deleteschoolcut(){}
 
-    @After("deleteschoolcut()")
+    @AfterReturning("deleteschoolcut()")
     public void deleteSchoolLogger() {
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         HttpSession session = LoggerAspect.getSession();
