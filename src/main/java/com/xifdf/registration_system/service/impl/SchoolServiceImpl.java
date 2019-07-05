@@ -41,6 +41,6 @@ public class SchoolServiceImpl implements SchoolService {
 
     @Override
     public int deleteSchool(int sid) throws Exception {
-        return 0;
+        return schoolDao.queryDeleteSchool(sid);
     }
 }

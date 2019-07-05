@@ -33,4 +33,9 @@
             </if>
         </trim>
     </insert>
+
+    <delete id="queryDeleteSchool" parameterType="int">
+      DELETE FROM school
+      WHERE s_id=#{sid}
+    </delete>
 </mapper>

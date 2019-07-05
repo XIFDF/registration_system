@@ -274,7 +274,7 @@
                                     <td style="font-family: '微软雅黑'">{{school.sid}}</td>
                                     <td>{{school.sname}}</td>
                                     <td v-if="school.sid != null">
-                                        <button @click="deleteschool(school.examId)" class="btn btn-danger ">删除学校</button>
+                                        <button @click="deleteSchool(school.sid)" class="btn btn-danger ">删除学校</button>
                                     </td>
                                 </tr>
                                 </tbody>
@@ -579,6 +579,22 @@
                             index.viewschoolpage();
                         }
                         else alert("添加失败！请重试！");
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            },
+            deleteSchool: function (sid) {
+                axios.post('/school/deleteschool', Qs.stringify({
+                    sid:sid,
+                }))
+                    .then(function (response) {
+                        var result = response.data;
+                        if (result == 1){
+                            alert("删除成功！");
+                            index.viewschoolpage();
+                        }
+                        else alert("删除失败！请重试！");
                     })
                     .catch(function (error) {
                         console.log(error);

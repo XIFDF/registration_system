@@ -29,4 +29,13 @@ public class SchoolController {
             return 0;
         }
     }
+
+    @PostMapping(value = "deleteschool")
+    public int addSchool(@RequestParam("sid") int sid) {
+        try {
+            return schoolService.deleteSchool(sid);
+        }catch (Exception e) {
+            return 0;
+        }
+    }
 }
