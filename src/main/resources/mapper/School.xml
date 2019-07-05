@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xifdf.registration_system.dao.SchoolDao">
+    <resultMap id="schoolResultMap" type="com.xifdf.registration_system.pojo.School">
+        <id property="sid" column="s_id" />
+        <result property="sname" column="s_name" />
+    </resultMap>
+
+    <select id="queryAllSchool" resultMap="schoolResultMap">
+        select *
+        from school
+    </select>
+
+    <select id="querySchoolByName" resultMap="schoolResultMap">
+        select *
+        from school
+        where s_name = #{sname}
+    </select>
+
+    <insert id="queryAddSchool">
+        INSERT INTO school
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="sname != null and sname != ''">
+                s_name,
+            </if>
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="sname != null and sname != ''">
+                #{sname},
+            </if>
+        </trim>
+    </insert>
+</mapper>

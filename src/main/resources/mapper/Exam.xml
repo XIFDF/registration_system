@@ -8,16 +8,167 @@
         <result property="examName" column="exam_name" />
         <result property="beginTime" column="begin_time" />
         <result property="endTime" column="end_time" />
+        <result property="dateTime" column="datetime" />
         <result property="site" column="site" />
     </resultMap>
 
-    <sql id="ExamList">
-        exam_id, exam_name, begin_time, end_time, site
+    <sql id="examAllColumns">
+        exam_id, exam_name, begin_time, end_time, datetime, site
     </sql>
     
     <select id="queryExamList" resultMap="examResultMap">
         SELECT
-        <include refid="ExamList" />
+        <include refid="examAllColumns" />
         FROM exam
     </select>
+
+    <select id="queryExpiringExams" resultMap="examResultMap">
+        SELECT 
+        <include refid="examAllColumns" />
+        FROM exam
+        WHERE TIMESTAMPDIFF(SECOND, now(), end_time) > 0
+        AND 86400 > TIMESTAMPDIFF(SECOND, now(), end_time)
+    </select>
+
+    <select id="queryThreeNewExams" resultMap="examResultMap">
+        SELECT
+        <include refid="examAllColumns" />
+        FROM exam
+        ORDER BY begin_time desc
+        limit 3
+    </select>
+
+    <select id="queryOverdueExams" resultMap="examResultMap">
+        SELECT
+        <include refid="examAllColumns" />
+        FROM exam
+        WHERE 0 > TIMESTAMPDIFF(SECOND, now(), end_time)
+    </select>
+
+    <select id="queryExamById" parameterType="int" resultMap="examResultMap">
+        SELECT
+        <include refid="examAllColumns" />
+        FROM exam
+        WHERE exam_id = #{examid}
+    </select>
+
+    <select id="queryExamByName" parameterType="String" resultMap="examResultMap">
+        SELECT
+        <include refid="examAllColumns" />
+        FROM exam
+        WHERE exam_name LIKE "%"#{examname}"%"
+    </select>
+
+    <select id="queryExamByUserid" parameterType="int" resultMap="examResultMap">
+        SELECT exam.exam_id, exam_name, begin_time, end_time, datetime, site
+        FROM exam, registration_info
+        WHERE registration_info.user_id = #{userid} and registration_info.exam_id = exam.exam_id
+    </select>
+
+    <insert id="queryAddExam" parameterType="Exam">
+      INSERT INTO exam
+      <trim prefix="(" suffix=")" suffixOverrides=",">
+          <if test="examName != null and examName != ''">
+              exam_name,
+          </if>
+
+          <if test="beginTime != null">
+              begin_time,
+          </if>
+
+          <if test="endTime != null">
+              end_time,
+          </if>
+
+          <if test="dateTime != null">
+              datetime,
+          </if>
+
+          <if test="site != null and site != ''">
+              site,
+          </if>
+      </trim>
+      VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="examName != null and examName != ''">
+                #{examName},
+            </if>
+
+            <if test="beginTime != null">
+                 #{beginTime},
+            </if>
+
+            <if test="endTime != null">
+                #{endTime},
+            </if>
+
+            <if test="dateTime != null">
+                #{dateTime},
+            </if>
+
+            <if test="site != null and site != ''">
+                #{site},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="queryUpdateExam" parameterType="Exam">
+      UPDATE Exam
+      <set>
+          <if test="examName != null and examName != ''">
+              exam_name = #{examName},
+          </if>
+
+          <if test="beginTime != null">
+              begin_time = #{beginTime},
+          </if>
+
+          <if test="endTime != null">
+              end_time = #{endTime},
+          </if>
+
+          <if test="dateTime != null">
+              datetime = #{dateTime},
+          </if>
+
+          <if test="site != null and site != ''">
+              site = #{site},
+          </if>
+      </set>
+      WHERE exam_id = #{examId}
+    </update>
+
+    <delete id="queryDeleteExam" parameterType="int">
+      DELETE FROM Exam
+      WHERE exam_id=#{examid}
+    </delete>
+
+    <insert id="queryAddRegistration" parameterType="Registration">
+        INSERT INTO registration_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userid != null and userid != ''">
+                user_id,
+            </if>
+
+            <if test="examid != null and examid != ''">
+                exam_id,
+            </if>
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userid != null and userid != ''">
+                #{userid},
+            </if>
+
+            <if test="examid != null and examid != ''">
+                #{examid},
+            </if>
+        </trim>
+    </insert>
+
+    <delete id="queryDeleteRegistration" parameterType="Registration">
+      DELETE FROM registration_info
+      WHERE exam_id=#{examid} and user_id=#{userid}
+    </delete>
+
 </mapper>

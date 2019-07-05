@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+    <link rel="stylesheet" href="personalpage.css">
+    <!--vue和插件-->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@0.12.0/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.13.1/lodash.min.js"></script>
+    <script src="https://cdn.bootcss.com/qs/6.5.1/qs.min.js"></script>
+</head>
+
+<body>
+<div id="rootdiv">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container"> <button class="navbar-toggler navbar-toggler-right border-0 p-0" type="button" data-toggle="collapse" data-target="#navbar20" style="">
+            <p class="navbar-brand text-white mb-0">
+            </p>
+        </button>
+            <div class="collapse navbar-collapse" id="navbar20">
+                <ul class="navbar-nav mr-auto">
+                    <p class="d-none d-md-block lead mb-0 text-white"> <i class="fa d-inline fa-lg fa-stop-circle"></i> <b>管理员中心</b> </p>
+                </ul>
+                <p class="d-none d-md-block lead mb-0 text-white"><b @click="gotoindex" style="font-size:28px"> 网上报名系统管理界面</b></p>
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item mx-1"> <a><img src="assets/conference/deheadpic.jpg" class="headpic"></a>
+                    </li>&nbsp;
+                </ul>
+            </div>
+            <div id="name"><a>{{session.username}}</a></div>
+        </div>
+    </nav>
+    <div class="py-2 pull-left w-100 h-75">
+        <div class="row w-100">
+            <div class="col-3 col-md-2" style="font-size: 25px;">
+                <ul class="nav nav-pills flex-column text-center">
+                    <li class="nav-item"> <a href="" @click="viewexampage" class="nav-link active" data-toggle="pill" data-target="#tabone">考试管理</a> </li>
+                    <li class="nav-item"> <a href="" @click="viewregpage" class="nav-link" data-toggle="pill" data-target="#tabtwo">考试报名情况</a> </li>
+                    <li class="nav-item"> <a href="" @click="viewstudentpage" class="nav-link" data-toggle="pill" data-target="#tabthree">账号信息管理</a> </li>
+                    <li class="nav-item"> <a href="" @click="viewschoolpage" class="nav-link" data-toggle="pill" data-target="#tabfour">学校信息管理</a> </li>
+                    <li class="nav-item"> <a href="" @click="viewmessagepage" class="nav-link" data-toggle="pill" data-target="#tabfive">查看留言</a> </li>
+                    <li class="nav-item"> <a @click="doLogout" href="" class="nav-link" data-toggle="pill" data-target="#">退出登录</a> </li>
+                </ul>
+            </div>
+            <div class="col-9 col-md-10 h-100" style="">
+                <div class="tab-content">
+                    <div class="tab-pane fade active show" id="tabone" role="tabpanel">
+                        <div>
+                            <h1 class="mb-1" style="font-size:28px">考试管理</h1>
+                            <div class="form-inline">
+                                <div class="form-group">
+                                    <input v-model="search" type="text" class="form-control" placeholder="请输入考试名称"> </div>&nbsp;&nbsp;
+                                <button @click="getexambyname" class="btn btn-primary">查询</button>&nbsp;&nbsp;
+                                <button class="btn btn-primary" data-toggle="modal" data-target="#addExamModal">添加考试</button>
+
+                            </div>
+                        </div>
+                        <div>
+                            <table class="table table-light table-hover" style="font-size: 18px">
+                                <tbody>
+                                <tr>
+                                    <td>考试项目</td>
+                                    <td>开始时间</td>
+                                    <td>截止时间</td>
+                                    <td>考试时间</td>
+                                    <td>考试地点</td>
+                                    <td>操作</td>
+                                </tr>
+                                <tr v-for="exam in exams">
+                                    <td style="font-family: '微软雅黑'">{{exam.examName}}</td>
+                                    <td>{{exam.beginTime}}</td>
+                                    <td>{{exam.endTime}}</td>
+                                    <td>{{exam.dateTime}}</td>
+                                    <td>{{exam.site}}</td>
+                                    <td v-if="exam.examName != null">
+                                        <button @click="geteditexam(exam)" class="btn btn-primary" data-toggle="modal" data-target="#editExamModal">编辑</button>
+                                        <button @click="deleteexam(exam.examId)" class="btn btn-danger ">删除考试</button>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            <ul class="pagination">
+                                <li> <a class="page-link" href="#"> <span>«</span></a> </li>
+                                <li class="page-item" @click="getPrePage_exam"> <a class="page-link"> <span>上一页</span></a> </li>
+                                <li class="page-item" @click="getNextPage_exam"> <a class="page-link"> <span>下一页</span></a> </li>
+                                <li> <a class="page-link" href="#"> <span>»</span></a> </li>
+                            </ul>
+                            <!-- 添加考试模态框（Modal） -->
+                            <div class="modal fade" id="addExamModal" tabindex="-1" role="dialog" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h4 class="modal-title">添加考试</h4>
+                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <label class="col-form-label">考试名称</label><input v-model="newexam.examName" type="text" class="form-control" placeholder="请输入考试名称">
+                                            <label class="col-form-label">开始时间</label><input v-model="newexam.beginTime" type="datetime-local" class="form-control"/>
+                                            <label class="col-form-label">截止时间</label><input v-model="newexam.endTime" type="datetime-local" class="form-control"/>
+                                            <label class="col-form-label">考试时间</label><input v-model="newexam.dateTime" type="datetime-local" class="form-control"/>
+                                            <label class="col-form-label">考试地点</label><input v-model="newexam.site" type="text" class="form-control" placeholder="请输入考试地点">
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                                            <button @click="addExam" type="button" class="btn btn-primary">添加考试</button>
+                                        </div>
+                                    </div><!-- /.modal-content -->
+                                </div><!-- /.modal -->
+                            </div>
+                            <div class="modal fade" id="editExamModal" tabindex="-1" role="dialog" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h4 class="modal-title">编辑考试</h4>
+                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <label class="col-form-label">考试名称</label><input v-model="editexam.examName" type="text" class="form-control" placeholder="请输入考试名称">
+                                            <label class="col-form-label">开始时间</label><input v-model="editexam.beginTime" type="datetime-local" class="form-control"/>
+                                            <label class="col-form-label">截止时间</label><input v-model="editexam.endTime" type="datetime-local" class="form-control"/>
+                                            <label class="col-form-label">考试时间</label><input v-model="editexam.dateTime" type="datetime-local" class="form-control"/>
+                                            <label class="col-form-label">考试地点</label><input v-model="editexam.site" type="text" class="form-control" placeholder="请输入考试地点">
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                                            <button @click="updateexam" type="button" class="btn btn-primary">更改</button>
+                                        </div>
+                                    </div><!-- /.modal-content -->
+                                </div><!-- /.modal -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="tabtwo" role="tabpanel">
+                        <div>
+                            <h1 class="mb-1" style="font-size:28px">考试报名查看</h1>
+                            <div class="form-inline">
+                                <div class="form-group">
+                                    <input v-model="search" type="text" class="form-control" placeholder="请输入考试名称"> </div>&nbsp;&nbsp;
+                                <button @click="getexambyname" class="btn btn-primary">查询</button>
+
+                            </div>
+                        </div>
+                        <div>
+                            <table class="table table-light table-hover" style="font-size: 18px">
+                                <tbody>
+                                <tr>
+                                    <td>考试项目</td>
+                                    <td>开始时间</td>
+                                    <td>截止时间</td>
+                                    <td>考试地点</td>
+                                    <td>报名人数</td>
+                                    <td>操作</td>
+                                </tr>
+                                <tr v-for="exam in exams">
+                                    <td style="font-family: '微软雅黑'">{{exam.examName}}</td>
+                                    <td>{{exam.beginTime}}</td>
+                                    <td>{{exam.endTime}}</td>
+                                    <td>{{exam.site}}</td>
+                                    <td></td>
+                                    <td v-if="exam.examName != null">
+                                        <button @click="getexamuser(exam.examId)" class="btn btn-primary" data-toggle="modal" data-target="#regModal">查看报名情况</button>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            <ul class="pagination">
+                                <li> <a class="page-link" href="#"> <span>«</span></a> </li>
+                                <li class="page-item" @click="getPrePage_exam"> <a class="page-link"> <span>上一页</span></a> </li>
+                                <li class="page-item" @click="getNextPage_exam"> <a class="page-link"> <span>下一页</span></a> </li>
+                                <li> <a class="page-link" href="#"> <span>»</span></a> </li>
+                            </ul>
+                            <!-- 添加考试模态框（Modal） -->
+                            <div class="modal fade" id="regModal" tabindex="-1" role="dialog" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h4 class="modal-title">报名名单</h4>
+                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <table class="table table-light table-hover" style="font-size: 18px">
+                                                <tbody>
+                                                <tr>
+                                                    <td>学生姓名</td>
+                                                    <td>学生身份证号</td>
+                                                    <td>学生邮箱</td>
+                                                </tr>
+                                                <tr v-for="user in examuser">
+                                                    <td>{{user.username}}</td>
+                                                    <td>{{user.pid}}</td>
+                                                    <td>{{user.email}}</td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                                        </div>
+                                    </div><!-- /.modal-content -->
+                                </div><!-- /.modal -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="tabthree" role="tabpanel">
+                        <div>
+                            <h1 class="mb-1" style="font-size:28px">学生管理</h1>
+                            <div class="form-inline">
+                                <div class="form-group">
+                                    <input v-model="search" type="text" class="form-control" placeholder="请输入学生名称"> </div>&nbsp;&nbsp;
+                                <button class="btn btn-primary">查询</button>&nbsp;&nbsp;
+                                <button class="btn btn-primary" data-toggle="modal" data-target="#addSchoolModal">添加学生</button>
+
+                            </div>
+                        </div>
+                        <div>
+                            <table class="table table-light table-hover" style="font-size: 18px">
+                                <tbody>
+                                <tr>
+                                    <td>学生编号</td>
+                                    <td>学生名称</td>
+                                    <td>学生身份证号</td>
+                                    <td>账号邮箱</td>
+                                    <td>账号角色</td>
+                                    <td>账号状态</td>
+                                </tr>
+                                <tr v-for="student in students">
+                                    <td>{{student.userid}}</td>
+                                    <td>{{student.username}}</td>
+                                    <td>{{student.pid}}</td>
+                                    <td>{{student.role}}</td>
+                                    <td>{{student.email}}</td>
+                                    <td>
+                                        <span style="color:red" v-if="student.status == -1">被禁用</span>
+                                        <span style="color:green" v-if="student.status == 1">可使用</span>
+                                    </td>
+                                    <td>
+                                        <button v-if="student.status == -1" @click="startuser(student.userid)" class="btn btn-primary ">启用账号</button>
+                                        <button v-if="student.status == 1" @click="banuser(student.userid)" class="btn btn-danger ">禁用账号</button>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            <ul class="pagination">
+                                <li> <a class="page-link" href="#"> <span>«</span></a> </li>
+                                <li class="page-item" @click="getPrePage_student"> <a class="page-link"> <span>上一页</span></a> </li>
+                                <li class="page-item" @click="getNextPage_student"> <a class="page-link"> <span>下一页</span></a> </li>
+                                <li> <a class="page-link" href="#"> <span>»</span></a> </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="tabfour" role="tabpanel">
+                        <div>
+                            <h1 class="mb-1" style="font-size:28px">学校管理</h1>
+                            <div class="form-inline">
+                                <div class="form-group">
+                                    <input v-model="search" type="text" class="form-control" placeholder="请输入学校名称"> </div>&nbsp;&nbsp;
+                                <button @click="getexambyname" class="btn btn-primary">查询</button>&nbsp;&nbsp;
+                                <button class="btn btn-primary" data-toggle="modal" data-target="#addSchoolModal">添加学校</button>
+
+                            </div>
+                        </div>
+                        <div>
+                            <table class="table table-light table-hover" style="font-size: 18px">
+                                <tbody>
+                                <tr>
+                                    <td>学校编号</td>
+                                    <td>学校名称</td>
+                                    <td>操作</td>
+                                </tr>
+                                <tr v-for="school in schools">
+                                    <td style="font-family: '微软雅黑'">{{school.sid}}</td>
+                                    <td>{{school.sname}}</td>
+                                    <td v-if="school.sid != null">
+                                        <button @click="deleteschool(school.examId)" class="btn btn-danger ">删除学校</button>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            <ul class="pagination">
+                                <li> <a class="page-link" href="#"> <span>«</span></a> </li>
+                                <li class="page-item" > <a class="page-link"> <span>上一页</span></a> </li>
+                                <li class="page-item" > <a class="page-link"> <span>下一页</span></a> </li>
+                                <li> <a class="page-link" href="#"> <span>»</span></a> </li>
+                            </ul>
+                            <!-- 添加学校模态框（Modal） -->
+                            <div class="modal fade" id="addSchoolModal" tabindex="-1" role="dialog" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h4 class="modal-title">添加学校</h4>
+                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <label class="col-form-label">学校名称</label><input v-model="newschool.sname" type="text" class="form-control" placeholder="请输入学校名称">
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                                            <button @click="addSchool" type="button" class="btn btn-primary">添加学校</button>
+                                        </div>
+                                    </div><!-- /.modal-content -->
+                                </div><!-- /.modal -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="tabfive" role="tabpanel">
+                        <table class="table table-light table-hover" style="font-size: 18px">
+                            <tbody>
+                            <tr>
+                                <td>留言用户</td>
+                                <td>考试名称</td>
+                                <td>留言信息</td>
+                            </tr>
+                            <tr v-for="message in messages">
+                                <td>{{message.username}}</td>
+                                <td>{{message.examname}}</td>
+                                <td>{{message.says}}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <ul class="pagination">
+                            <li> <a class="page-link" href="#"> <span>«</span></a> </li>
+                            <li @click="getPrePage_message" class="page-item" > <a class="page-link"> <span>上一页</span></a> </li>
+                            <li @click="getNextPage_message" class="page-item" > <a class="page-link"> <span>下一页</span></a> </li>
+                            <li> <a class="page-link" href="#"> <span>»</span></a> </li>
+                        </ul>
+                    </div>
+                    <div class="tab-pane fade" id="tabsix" role="tabpanel">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+<!--js-->
+<script>
+    axios.get("http://localhost:8080/getSession").then(function (response) {
+        var jsonObject = response.data;
+        index.session = jsonObject;
+    });
+
+
+    var index = new Vue({
+        el: '#rootdiv',
+        mounted(){
+            this.viewexampage()
+        },
+        data: {
+            search:'',
+            session:{},
+            userconfig:{},
+            examuser:[],
+            schools:[],
+            newschool:{
+                sname:''
+            },
+            exams: [],
+            newexam:{
+                examName:'', beginTime:'', endTime:'', dateTime:'', site:''
+            },
+            editexam:{
+                examid:0, examName:'', beginTime:'', endTime:'', dateTime:'', site:''
+            },
+            messages: [],
+            students: [],
+            examsCurrentPage:1,
+            studentsCurrentPage:1,
+            messageCurrentPage:1
+        },
+        methods:{
+            gotoindex: function (event) {
+                window.location.href="/index";
+            },
+
+            dealexams: function (event) {
+                for (var i = 0; index.exams[i] != null; ++i) {
+                    index.exams[i].beginTime = index.exams[i].beginTime.split(".")[0].replace(/T/, " ");
+                    index.exams[i].endTime = index.exams[i].endTime.split(".")[0].replace(/T/, " ");
+                    index.exams[i].dateTime = index.exams[i].dateTime.split(".")[0].replace(/T/, " ");
+                }
+            },
+            // 考试管理页
+            viewexampage: function (event) {
+                axios.get("http://localhost:8080/exam/getexams?pageNum=1").then(function (response) {
+                    var jsonObject = response.data;
+                    index.exams = jsonObject.list;
+                    examsCurrentPage = jsonObject.pageNum;
+                    index.dealexams();
+                });
+            },
+            getPrePage_exam: function (event) {
+                axios.get("http://localhost:8080/exam/getexams?pageNum="+(examsCurrentPage-1)).then(function (response) {
+                    var jsonObject = response.data;
+                    index.exams = jsonObject.list;
+                    examsCurrentPage = jsonObject.pageNum;
+                    index.dealexams();
+                })
+            },
+            getNextPage_exam: function (event) {
+                axios.get("http://localhost:8080/exam/getexams?pageNum="+(examsCurrentPage+1)).then(function (response) {
+                    var jsonObject = response.data;
+                    index.exams = jsonObject.list;
+                    examsCurrentPage = jsonObject.pageNum;
+                    index.dealexams();
+                })
+            },
+            addExam: function () {
+                axios.post('/exam/addexam', Qs.stringify({
+                    examName:index.newexam.examName,
+                    beginTime:index.newexam.beginTime,
+                    endTime:index.newexam.endTime,
+                    dateTime:index.newexam.dateTime,
+                    site:index.newexam.site
+                }))
+                    .then(function (response) {
+                        var result = response.data;
+                        if (result == 1){
+                            alert("添加成功！");
+                        }
+                        else alert("添加失败！请重试！");
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            },
+            geteditexam: function (exam) {
+                index.editexam.examId = exam.examId;
+                index.editexam.examName = exam.examName;
+                index.editexam.beginTime = exam.beginTime;
+                index.editexam.endTime = exam.endTime;
+                index.editexam.dateTime = exam.dateTime;
+                index.editexam.site = exam.site;
+                index.editexam.beginTime = index.editexam.beginTime.split(" ")[0]+"T"+index.editexam.beginTime.split(" ")[1];
+                index.editexam.endTime = index.editexam.endTime.split(" ")[0]+"T"+index.editexam.endTime.split(" ")[1];
+                index.editexam.dateTime = index.editexam.dateTime.split(" ")[0]+"T"+index.editexam.dateTime.split(" ")[1];
+            },
+            updateexam: function () {
+                axios.post('/exam/updateexam', Qs.stringify({
+                    examId: index.editexam.examId,
+                    examName:index.editexam.examName,
+                    beginTime:index.editexam.beginTime,
+                    endTime:index.editexam.endTime,
+                    dateTime:index.editexam.dateTime,
+                    site:index.editexam.site
+                }))
+                    .then(function (response) {
+                        var result = response.data;
+                        if (result == 1){
+                            alert("更改成功！");
+                        }
+                        else alert("更改失败！请重试！");
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            },
+            getexambyname: function (event) {
+                axios.get("http://localhost:8080/exam/getexambyname?examname="+index.search).then(function (response) {
+                    index.exams = {};
+                    index.exams[0] = response.data;
+                    index.dealexams();
+                });
+            },
+            deleteexam: function (examId) {
+                if(confirm("是否删除该考试？")){
+                    axios.post('/exam/deleteexam', Qs.stringify({
+                        examId:examId
+                    }))
+                        .then(function (response) {
+                            var result = response.data;
+                            if (result == 1){
+                                alert("删除成功！");
+                                index.viewexampage();
+                            }
+                            else alert("删除失败！请重试！");
+                        })
+                        .catch(function (error) {
+                            console.log(error);
+                        });
+                }
+            },
+            //报名信息页
+            viewregpage: function (event) {
+                axios.get("http://localhost:8080/exam/getexams?pageNum=1").then(function (response) {
+                    var jsonObject = response.data;
+                    index.exams = jsonObject.list;
+                    examsCurrentPage = jsonObject.pageNum;
+                    index.dealexams();
+                });
+            },
+            getexamuser: function (examId) {
+                axios.get("http://localhost:8080/user/getuserbyexam?examId="+examId).then(function (response) {
+                    index.examuser = response.data;
+                });
+            },
+            getexambyname: function (event) {
+                axios.get("http://localhost:8080/exam/getexambyname?examname="+index.search).then(function (response) {
+                    index.exams = response.data;
+                    for (var i = 0; index.exams[i] != null; ++i) {
+                        index.dealexams();
+                    }
+                });
+            },
+            //学生页
+            viewstudentpage: function (event) {
+                axios.get("http://localhost:8080/user/getusers?pageNum="+1).then(function (response) {
+                    var jsonObject = response.data;
+                    index.students = jsonObject.list;
+                    studentsCurrentPage = jsonObject.pageNum;
+                });
+            },
+            getPrePage_student: function (event) {
+                axios.get("http://localhost:8080/user/getusers?pageNum="+(studentsCurrentPage-1)).then(function (response) {
+                    var jsonObject = response.data;
+                    index.students = jsonObject.list;
+                    studentsCurrentPage = jsonObject.pageNum;
+                })
+            },
+            getNextPage_student: function (event) {
+                axios.get("http://localhost:8080/user/getusers?pageNum="+(studentsCurrentPage+1)).then(function (response) {
+                    var jsonObject = response.data;
+                    index.students = jsonObject.list;
+                    studentsCurrentPage = jsonObject.pageNum;
+                })
+            },
+            banuser: function (userid) {
+                axios.post('/user/banuser', Qs.stringify({
+                    userid:userid,
+                }))
+                    .then(function (response) {
+                        var result = response.data;
+                        if (result == 1){
+                            alert("禁用成功！");
+                            index.viewstudentpage();
+                        }
+                        else alert("禁用失败！请重试！");
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            },
+            startuser: function (userid) {
+                axios.post('/user/startuser', Qs.stringify({
+                    userid:userid,
+                }))
+                    .then(function (response) {
+                        var result = response.data;
+                        if (result == 1){
+                            alert("启用成功！");
+                            index.viewstudentpage();
+                        }
+                        else alert("启用失败！请重试！");
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            },
+            //学校页
+            viewschoolpage: function (event) {
+                axios.get("http://localhost:8080/school/getallschool").then(function (response) {
+                    index.schools = response.data;
+                });
+            },
+            addSchool: function () {
+                axios.post('/school/addschool', Qs.stringify({
+                    sname:index.newschool.sname,
+                }))
+                    .then(function (response) {
+                        var result = response.data;
+                        if (result == 1){
+                            alert("添加成功！");
+                            index.viewschoolpage();
+                        }
+                        else alert("添加失败！请重试！");
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            },
+            //
+            viewmessagepage: function (event) {
+                axios.get("http://localhost:8080/message/getallmessage?pageNum="+1).then(function (response) {
+                    var jsonObject = response.data;
+                    index.messages = jsonObject.list;
+                    messageCurrentPage = jsonObject.pageNum;
+                })
+            },
+            getPrePage_message: function (event) {
+                axios.get("http://localhost:8080/message/getallmessage?pageNum="+(messageCurrentPage-1)).then(function (response) {
+                    var jsonObject = response.data;
+                    index.messages = jsonObject.list;
+                    messageCurrentPage = jsonObject.pageNum;
+                })
+            },
+            getNextPage_message: function (event) {
+                axios.get("http://localhost:8080/message/getallmessage?pageNum="+(messageCurrentPage+1)).then(function (response) {
+                    var jsonObject = response.data;
+                    index.messages = jsonObject.list;
+                    messageCurrentPage = jsonObject.pageNum;
+                })
+            },
+            viewlogpage: function (event) {
+
+            },
+            doLogout:function (event) {
+                if(confirm("是否退出登录？")){
+                    axios.post('http://localhost:8080/user/logout')
+                        .then(function (response) {
+                            alert("登出成功！");
+                            window.location.href="/index";
+                        })
+                        .catch(function (error) {
+                            console.log(error);
+                        });
+                }
+            }
+        }
+    })
+</script>
+</body>
+</html>

@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
-import java.sql.Date;
+import java.sql.Timestamp;
 
 @Data
 @NoArgsConstructor
@@ -12,7 +12,8 @@ import java.sql.Date;
 public class Exam {
     private int examId;
     private String examName;
-    private Date beginTime;
-    private Date endTime;
+    private Timestamp beginTime;
+    private Timestamp endTime;
+    private Timestamp dateTime;
     private String site;
 }

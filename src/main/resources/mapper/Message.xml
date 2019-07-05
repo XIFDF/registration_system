@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xifdf.registration_system.dao.MessageDao">
+    <resultMap id="messageResultMap" type="com.xifdf.registration_system.pojo.Message">
+        <id property="mid" column="m_id" />
+        <result property="examid" column="exam_id" />
+        <result property="examname" column="exam_name" />
+        <result property="userid" column="user_id" />
+        <result property="username" column="user_name" />
+        <result property="says" column="says" />
+    </resultMap>
+
+    <sql id="messageAllColumns">
+        m_id, message.user_id user_id, user_name, message.exam_id exam_id, exam_name, says
+    </sql>
+
+    <select id="queryMessageList" resultMap="messageResultMap">
+        SELECT
+        <include refid="messageAllColumns" />
+        FROM message left join user on message.user_id = user.user_id
+        left join exam on message.exam_id = exam.exam_id
+    </select>
+
+    <select id="queryMessageByExam" parameterType="int" resultMap="messageResultMap">
+        SELECT
+        <include refid="messageAllColumns" />
+        FROM message, user, exam
+        WHERE message.exam_id = #{examid}
+        and user.user_id = message.user_id
+        and exam.exam_id = message.exam_id
+    </select>
+
+    <select id="queryMessageByUser" parameterType="int" resultMap="messageResultMap">
+        SELECT
+        m_id, message.user_id as user_id, user_name, message.exam_id as exam_id, exam_name, says
+        FROM message, user, exam
+        WHERE message.user_id = #{userid}
+        and user.user_id = message.user_id
+        and exam.exam_id = message.exam_id
+    </select>
+
+    <insert id="queryAddMessage">
+        INSERT INTO message
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userid != null and userid != ''">
+                user_id,
+            </if>
+
+            <if test="examid != null and examid != ''">
+                exam_id,
+            </if>
+
+            <if test="says != null and says != ''">
+                says,
+            </if>
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userid != null and userid != ''">
+                #{userid},
+            </if>
+
+            <if test="examid != null and examid != ''">
+                #{examid},
+            </if>
+
+            <if test="says != null and says != ''">
+                #{says},
+            </if>
+        </trim>
+    </insert>
+
+    <delete id="queryDeleteMessage" parameterType="int">
+      DELETE FROM message
+      WHERE m_id=#{mid}
+    </delete>
+</mapper>

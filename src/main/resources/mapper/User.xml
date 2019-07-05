@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xifdf.registration_system.dao.UserDao">
+    <resultMap id="userResultMap" type="com.xifdf.registration_system.pojo.User" >
+        <id property="userid" column="user_id" />
+        <result property="username" column="user_name" />
+        <result property="pid" column="p_id" />
+        <result property="sid" column="s_id" />
+        <result property="profile" column="profile" />
+        <result property="password" column="password" />
+        <result property="email" column="email" />
+        <result property="status" column="status" />
+        <result property="role" column="rolename" />
+    </resultMap>
+
+    <sql id="userAllColumns">
+        user_id, user_name, p_id, s_id, profile, password, email, status, role.name rolename
+    </sql>
+
+    <select id="queryUserByEmail" parameterType="String" resultMap="userResultMap">
+        SELECT
+        <include refid="userAllColumns" />
+        FROM
+        (user left join user_role
+        on user.user_id = user_role.uid)
+        left join role on user_role.rid = role.id
+        WHERE email = #{email}
+    </select>
+
+    <select id="queryUserList" resultMap="userResultMap">
+        SELECT
+        <include refid="userAllColumns" />
+        FROM
+        (user left join user_role
+        on user.user_id = user_role.uid)
+        left join role on user_role.rid = role.id
+        order by user_id
+    </select>
+
+    <select id="queryUserByUserid" parameterType="int" resultMap="userResultMap">
+        SELECT
+        <include refid="userAllColumns" />
+        FROM
+        (user left join user_role
+        on user.user_id = user_role.uid)
+        left join role on user_role.rid = role.id
+        WHERE user_id = #{userid}
+    </select>
+
+    <select id="queryUserByExam" parameterType="int" resultMap="userResultMap">
+        SELECT
+        user.user_id, user.user_name, p_id, s_id, profile, password, email
+        FROM
+        (registration_info left join user
+        on user.user_id = registration_info.user_id)
+        left join exam on registration_info.exam_id = exam.exam_id
+        WHERE exam.exam_id = #{examId}
+    </select>
+
+    <insert id="queryAddUser" parameterType="User">
+        INSERT INTO user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="username != null and username != ''">
+                user_name,
+            </if>
+
+            <if test="password != null and password != ''">
+                password,
+            </if>
+
+            <if test="email != null and email != ''">
+                email
+            </if>
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="username != null and username != ''">
+                #{username},
+            </if>
+
+            <if test="password != null and password != ''">
+                #{password},
+            </if>
+
+            <if test="email != null and email != ''">
+                #{email}
+            </if>
+
+            <if test="status != null and status != ''">
+                #{status}
+            </if>
+        </trim>
+    </insert>
+
+    <update id="queryUpdateUser" parameterType="User">
+        UPDATE user
+        <set>
+            <if test="username != null and username != ''">
+                user_name = #{username},
+            </if>
+
+            <if test="sid != null and sid != ''">
+                s_id= #{sid},
+            </if>
+
+            <if test="pid != null and pid != ''">
+                p_id = #{pid},
+            </if>
+
+            <if test="email != null and email != ''">
+                email = #{email},
+            </if>
+
+            <if test="password != null and password != ''">
+                password = #{password},
+            </if>
+
+            <if test="status != null and status != ''">
+                status = #{status},
+            </if>
+        </set>
+        WHERE user_id = #{userid}
+    </update>
+
+    <insert id="queryAddUserRole" parameterType="int">
+        INSERT INTO user_role
+        set uid = #{uid}, rid = #{rid}
+    </insert>
+</mapper>

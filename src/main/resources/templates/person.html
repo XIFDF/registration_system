@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+    <link rel="stylesheet" href="personalpage.css">
+    <!--vue和插件-->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@0.12.0/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.13.1/lodash.min.js"></script>
+    <script src="https://cdn.bootcss.com/qs/6.5.1/qs.min.js"></script>
+</head>
+
+<body>
+<div id="rootdiv">
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container"> <button class="navbar-toggler navbar-toggler-right border-0 p-0" type="button" data-toggle="collapse" data-target="#navbar20" style="">
+        <p class="navbar-brand text-white mb-0">
+        </p>
+    </button>
+        <div class="collapse navbar-collapse" id="navbar20">
+            <ul class="navbar-nav mr-auto">
+                <p class="d-none d-md-block lead mb-0 text-white"> <i class="fa d-inline fa-lg fa-stop-circle"></i> <b> 用户中心</b> </p>
+            </ul>
+            <p class="d-none d-md-block lead mb-0 text-white"><b @click="gotoindex" style="font-size:28px"> 网上报名系统管理界面</b></p>
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item mx-1"> <a><img src="assets/conference/deheadpic.jpg" class="headpic"></a>
+                </li>&nbsp;
+            </ul>
+        </div>
+        <div id="name"><a>{{session.username}}</a></div>
+    </div>
+</nav>
+<div class="py-2 pull-left w-100 h-75">
+    <div class="row w-100">
+        <div class="col-3 col-md-2" style="font-size: 25px;">
+            <ul class="nav nav-pills flex-column text-center">
+                <li class="nav-item"> <a href="" @click="viewregpage" class="nav-link active" data-toggle="pill" data-target="#tabone">考试报名情况</a> </li>
+                <li class="nav-item"> <a href="" @click="viewexampage" class="nav-link" data-toggle="pill" data-target="#tabtwo">考试列表</a> </li>
+                <li class="nav-item"> <a href="" @click="viewmessagepage" class="nav-link" data-toggle="pill" data-target="#tabthree">我的留言</a> </li>
+                <li class="nav-item"> <a href="" @click="viewpersonpage" class="nav-link" data-toggle="pill" data-target="#tabfour">账号管理</a> </li>
+                <li class="nav-item"> <a @click="doLogout" href="" class="nav-link" data-toggle="pill" data-target="#">退出登录</a> </li>
+            </ul>
+        </div>
+        <div class="col-9 col-md-10 h-100" style="">
+            <div class="tab-content">
+                <div class="tab-pane fade active show" id="tabone" role="tabpanel">
+                    <div>
+                        <h1 class="mb-1" style="font-size:28px">已报名考试列表</h1>
+                        <div class="form-inline">
+                            <div class="form-group">
+                                <input type="text" class="form-control" placeholder="请输入考试名称"> </div>
+                            <button  class="btn btn-primary">查询</button>
+                        </div>
+                    </div>
+                    <div>
+                        <table class="table table-light table-hover" style="font-size: 18px">
+                            <tbody>
+                            <tr>
+                                <td>考试项目</td>
+                                <td>截止时间</td>
+                                <td>考试时间</td>
+                                <td>考试地点</td>
+                                <td>操作</td>
+                            </tr>
+                            <tr v-for="exam in regexams">
+                                <td style="font-family: '微软雅黑'">{{exam.examName}}</td>
+                                <td>{{exam.endTime}}</td>
+                                <td>{{exam.dateTime}}</td>
+                                <td>{{exam.site}}</td>
+                                <td>
+                                    <button @click="setmessageexamid(exam.examId)" class="btn btn-primary" data-toggle="modal" data-target="#messageModal">留言</button>
+                                    <button @click="regdelete(exam.examId)" class="btn btn-danger ">取消报名</button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <ul class="pagination">
+                            <li> <a class="page-link" href="#"> <span>«</span></a> </li>
+                            <li class="page-item" v-on:click="getEPrePage"> <a class="page-link"> <span>上一页</span></a> </li>
+                            <li class="page-item" v-on:click="getENextPage"> <a class="page-link"> <span>下一页</span></a> </li>
+                            <li> <a class="page-link" href="#"> <span>»</span></a> </li>
+                        </ul>
+                        <!-- 模态框（Modal） -->
+                        <div class="modal fade" id="messageModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h4 class="modal-title" id="myModalLabel">留言</h4>
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <textarea v-model="messagetext" class="form-control" rows="3"></textarea>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                                        <button @click="addmessage" type="button" class="btn btn-primary">提交留言</button>
+                                    </div>
+                                </div><!-- /.modal-content -->
+                            </div><!-- /.modal -->
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="tabtwo" role="tabpanel">
+                    <div>
+                        <h1 class="mb-1" style="font-size:28px">考试列表</h1>
+                        <div class="form-inline">
+                            <div class="form-group">
+                                <input v-model="search" type="text" class="form-control" id="inputmailinline" placeholder="请输入考试名称"> </div>
+                            <button @click="getexambyname" class="btn btn-primary ">查询</button>
+                        </div>
+                    </div>
+                    <div>
+                        <table class="table table-light table-hover" style="font-size: 18px">
+                            <tbody>
+                            <tr>
+                                <td>考试项目</td>
+                                <td>开始时间</td>
+                                <td>截止时间</td>
+                                <td>考试时间</td>
+                                <td>操作</td>
+                            </tr>
+                            <tr v-for="exam in exams">
+                                <td style="font-family: '微软雅黑'">{{exam.examName}}</td>
+                                <td>{{exam.beginTime}}</td>
+                                <td>{{exam.endTime}}</td>
+                                <td>{{exam.dateTime}}</td>
+                                <td v-if="exam.examName != null">
+                                    <button @click="regadd(exam.examId)" class="btn btn-success ">报名</button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <ul class="pagination">
+                            <li> <a class="page-link" href="#"> <span>«</span></a> </li>
+                            <li class="page-item" v-on:click="getPrePage"> <a class="page-link"> <span>上一页</span></a> </li>
+                            <li class="page-item" v-on:click="getNextPage"> <a class="page-link"> <span>下一页</span></a> </li>
+                            <li> <a class="page-link" href="#"> <span>»</span></a> </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="tabthree" role="tabpanel">
+                    <div>
+                        <table class="table table-light table-hover" id="table1" style="font-size: 18px">
+                            <tbody>
+                            <tr>
+                                <td >考试项目</td>
+                                <td>留言信息</td>
+                                <td>操作</td>
+                            </tr>
+                            <tr v-for="message in messages">
+                                <td style="font-family: '微软雅黑'" width="200px">{{message.examname}}</td>
+                                <td width="700px">{{message.says}}</td>
+                                <td>
+
+                                    <button @click="messagedelete(message.mid, message.userid)" class="btn btn-danger ">删除</button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <ul class="pagination">
+                            <li> <a class="page-link" href="#"> <span>«</span></a> </li>
+                            <li class="page-item" v-on:click="getPrePage"> <a class="page-link"> <span>上一页</span></a> </li>
+                            <li class="page-item" v-on:click="getNextPage"> <a class="page-link"> <span>下一页</span></a> </li>
+                            <li> <a class="page-link" href="#"> <span>»</span></a> </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="tabfour" role="tabpanel">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-lg-6 col-10 mx-5">
+                                <h1 class="">个人资料</h1>
+                                <img class="img-fluid d-block rounded-circle w-25" src="assets/conference/deheadpic.jpg" style="">
+                                <div class="text-left">
+                                    <div class="form-group"> <label>昵称</label> <input v-model="userconfig.username" type="text" class="form-control" placeholder="昵称"> </div>
+                                    <div class="form-group"> <label>所属学校</label>
+                                        <select id="sel" v-model="userconfig.sid" type="text" class="form-control" placeholder="所属学校">
+                                            <option v-for="school in schools">{{school.sname}}</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group"> <label>身份证号</label> <input v-model="userconfig.pid" type="text" class="form-control" placeholder="身份证号">
+                                        <div class="form-group"><label>邮箱地址</label><input v-model="userconfig.email" type="email" class="form-control" placeholder="账号邮箱"></div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6"> <label >新密码</label> <input v-model="userconfig.password" type="password" class="form-control"> </div>
+                                        <div class="form-group col-md-6"> <label >确认密码</label> <input v-model="wpassword" type="password" class="form-control">
+                                        </div>
+                                    </div>
+                                    <button @click="userupdate" class="btn btn-primary">保存</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+<!--js-->
+<script>
+    axios.get("http://localhost:8080/getSession").then(function (response) {
+        var jsonObject = response.data;
+        index.session = jsonObject;
+    });
+
+
+    var index = new Vue({
+        el: '#rootdiv',
+        mounted(){
+            this.viewregpage()
+        },
+        data: {
+            messagetext:'',
+            wpassword:'',
+            submessageexamid: 0,
+            search:'',
+            session:{},
+            userconfig:{},
+            schools:[],
+            regexams: [],
+            exams: [],
+            messages: [],
+            regexamsCurrentPage:1,
+            examsCurrentPage:1,
+            messageCurrentPage:1
+        },
+        methods:{
+            gotoindex: function (event) {
+                window.location.href="/index";
+            },
+            viewregpage: function (event) {
+                axios.get("http://localhost:8080/exam/getexamsbyuser?pageNum=1").then(function (response) {
+                    var jsonObject = response.data;
+                    index.regexams = jsonObject.list;
+                    regexamsCurrentPage = jsonObject.pageNum;
+                    for (var i = 0; index.regexams[i] != null; ++i) {
+                        index.regexams[i].beginTime = index.regexams[i].beginTime.split(".")[0].replace(/T/, " ");
+                        index.regexams[i].endTime = index.regexams[i].endTime.split(".")[0].replace(/T/, " ");
+                        index.regexams[i].dateTime = index.regexams[i].dateTime.split(".")[0].replace(/T/, " ");
+                    }
+                });
+            },
+
+            viewexampage: function (event) {
+                axios.get("http://localhost:8080/exam/getexams?pageNum=1").then(function (response) {
+                    var jsonObject = response.data;
+                    index.exams = jsonObject.list;
+                    examsCurrentPage = jsonObject.pageNum;
+                    for (var i = 0; index.exams[i] != null; ++i) {
+                        index.exams[i].beginTime = index.exams[i].beginTime.split(".")[0].replace(/T/, " ");
+                        index.exams[i].endTime = index.exams[i].endTime.split(".")[0].replace(/T/, " ");
+                        index.exams[i].dateTime = index.exams[i].dateTime.split(".")[0].replace(/T/, " ");
+                    }
+                });
+            },
+            getexambyname: function (event) {
+                axios.get("http://localhost:8080/exam/getexambyname?examname="+index.search).then(function (response) {
+                    index.exams = response.data;
+                    for (var i = 0; index.exams[i] != null; ++i) {
+                        index.exams[i].beginTime = index.exams[i].beginTime.split(".")[0].replace(/T/, " ");
+                        index.exams[i].endTime = index.exams[i].endTime.split(".")[0].replace(/T/, " ");
+                        index.exams[i].dateTime = index.exams[i].dateTime.split(".")[0].replace(/T/, " ");
+                    }
+                });
+            },
+            viewmessagepage: function (event) {
+                axios.get("http://localhost:8080/message/getmessagesbyuser?pageNum=1").then(function (response) {
+                    var jsonObject = response.data;
+                    index.messages = jsonObject.list;
+                    messageCurrentPage = jsonObject.pageNum;
+                });
+            },
+            regdelete: function(examid) {
+                axios.post('/exam/deletereg', Qs.stringify({
+                    examid : examid
+                }))
+                    .then(function (response) {
+                        var regresult = response.data;
+                        if (regresult == 1){
+                            alert("取消报名成功！");
+                            index.viewregpage();
+                        }
+                        else alert("取消报名失败！请重试！");
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            },
+            regadd: function(examid) {
+                axios.post('/exam/addreg', Qs.stringify({
+                    examid : examid
+                }))
+                    .then(function (response) {
+                        var regresult = response.data;
+                        if (regresult == 1){
+                            alert("报名成功！");
+                        }
+                        else alert("您已报名！");
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            },
+            messagedelete: function(mid, userid) {
+                axios.post('/message/deletemessage', Qs.stringify({
+                    mid : mid,
+                    userid : userid
+                }))
+                    .then(function (response) {
+                        var regresult = response.data;
+                        if (regresult == 1){
+                            alert("删除留言成功！");
+                            index.viewmessagepage();
+                        }
+                        else alert("删除留言失败！请重试！");
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            },
+            setmessageexamid : function(examid) {
+                submessageexamid = examid;
+            },
+            addmessage : function(){
+                axios.post('/message/addmessage', Qs.stringify({
+                    examid : submessageexamid,
+                    says : index.messagetext,
+                }))
+                    .then(function (response) {
+                        var regresult = response.data;
+                        if (regresult == 1){
+                            alert("留言成功！");
+                        }
+                        else alert("留言失败！请重试！");
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            },
+            viewpersonpage: function (event) {
+                axios.get("http://localhost:8080/user/getuserconfig").then(function (response) {
+                    index.userconfig = response.data;
+                }).then(function (response) {
+                    axios.get("http://localhost:8080/school/getallschool").then(function (response) {
+                        index.schools = response.data;
+                        var i = 0, s = '';
+                        for(var k in index.schools){
+                            if(index.schools[k].sid == index.userconfig.sid){
+                                s = index.schools[k].sname;
+                                index.userconfig.sid = s;
+                                break;
+                            }
+                        }
+                    });
+                });
+            },
+            userupdate: function() {
+                if (index.wpassword == index.userconfig.password) {
+                    axios.post('/user/updateuser', Qs.stringify({
+                        username:index.userconfig.username,
+                        sid:index.userconfig.sid,
+                        pid:index.userconfig.pid,
+                        email:index.userconfig.email,
+                        password:index.userconfig.password
+                    }))
+                        .then(function (response) {
+                            var updateresult = response.data;
+                            if (updateresult == 1){
+                                alert("保存成功！");
+                            }
+                            else alert("保存失败！请重试！");
+                        })
+                        .catch(function (error) {
+                            console.log(error);
+                        });
+                }else alert("两次密码不一致！")
+            },
+            uploadpic:function(event) {
+                var that=this;
+                var imgFile = $(this.$el).find('#imgLocal')[0].files[0];//取到上传的图片
+                var formData=new FormData();//通过formdata上传
+                formData.append('file',imgFile);
+                let config = {
+                    headers:{'Content-Type':'multipart/form-data'}
+                };  //添加请求头
+                axios.post('/user/upload',formData,config)
+                    .then(response=>{
+                        console.log(response.data);
+                    })
+            },
+            ///////////////////////////
+            getPrePage: function (event) {
+                axios.get("http://localhost:8080/exam/getexams?pageNum="+(examsCurrentPage-1)).then(function (response) {
+                    var jsonObject = response.data;
+                    index.exams = jsonObject.list;
+                    examsCurrentPage = jsonObject.pageNum;
+                    for (var i = 0; index.exams[i] != null; ++i) {
+                        index.exams[i].beginTime = index.exams[i].beginTime.split(".")[0].replace(/T/, " ");
+                        index.exams[i].endTime = index.exams[i].endTime.split(".")[0].replace(/T/, " ");
+                        index.exams[i].dateTime = index.exams[i].dateTime.split(".")[0].replace(/T/, " ");
+                    }
+
+                })
+            },
+            getNextPage: function (event) {
+                axios.get("http://localhost:8080/exam/getexams?pageNum="+(examsCurrentPage+1)).then(function (response) {
+                    var jsonObject = response.data;
+                    index.exams = jsonObject.list;
+                    examsCurrentPage = jsonObject.pageNum;
+                    for (var i = 0; index.exams[i] != null; ++i) {
+                        index.exams[i].beginTime = index.exams[i].beginTime.split(".")[0].replace(/T/, " ");
+                        index.exams[i].endTime = index.exams[i].endTime.split(".")[0].replace(/T/, " ");
+                        index.exams[i].dateTime = index.exams[i].dateTime.split(".")[0].replace(/T/, " ");
+                    }
+
+                })
+
+            },
+            getEPrePage: function (event) {
+                axios.get("http://localhost:8080/exam/getexamsbyuser?pageNum="+(regexamsCurrentPage-1)).then(function (response) {
+                    var jsonObject = response.data;
+                    index.regexams = jsonObject.list;
+                    regexamsCurrentPage = jsonObject.pageNum;
+                    for (var i = 0; index.regexams[i] != null; ++i) {
+                        index.regexams[i].beginTime = index.regexams[i].beginTime.split(".")[0].replace(/T/, " ");
+                        index.regexams[i].endTime = index.regexams[i].endTime.split(".")[0].replace(/T/, " ");
+                        index.regexams[i].dateTime = index.regexams[i].dateTime.split(".")[0].replace(/T/, " ");
+                    }
+                })
+            },
+            getENextPage: function (event) {
+                axios.get("http://localhost:8080/exam/getexamsbyuser?pageNum="+(regexamsCurrentPage+1)).then(function (response) {
+                    var jsonObject = response.data;
+                    index.regexams = jsonObject.list;
+                    regexamsCurrentPage = jsonObject.pageNum;
+                    for (var i = 0; index.regexams[i] != null; ++i) {
+                        index.regexams[i].beginTime = index.regexams[i].beginTime.split(".")[0].replace(/T/, " ");
+                        index.regexams[i].endTime = index.regexams[i].endTime.split(".")[0].replace(/T/, " ");
+                        index.regexams[i].dateTime = index.regexams[i].dateTime.split(".")[0].replace(/T/, " ");
+                    }
+
+                })
+
+            },
+            doLogout:function (event) {
+                if(confirm("是否退出登录？")){
+                axios.post('http://localhost:8080/user/logout')
+                    .then(function (response) {
+                        alert("登出成功！");
+                        window.location.href="/index";
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+                }
+            }
+        }
+    })
+</script>
+</body>
+</html>
