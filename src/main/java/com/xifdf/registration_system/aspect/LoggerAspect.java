@@ -31,9 +31,9 @@ public class LoggerAspect {
     }
 
     @Pointcut("execution(public * com.xifdf.registration_system.service.*.deleteSchool(..))")
-    public void cut(){}
+    public void deleteschoolcut(){}
 
-    @After("cut()")
+    @After("deleteschoolcut()")
     public void deleteSchoolLogger() {
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         HttpSession session = LoggerAspect.getSession();
