@@ -30,7 +30,7 @@ public class SchoolController {
         }
     }
 
-    @PostMapping(value = "deleteschool")
+    @PostMapping(value = "/deleteschool")
     public int addSchool(@RequestParam("sid") int sid) {
         try {
             return schoolService.deleteSchool(sid);

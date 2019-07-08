@@ -1,9 +1,7 @@
 package com.xifdf.registration_system.controller;
 
 import com.github.pagehelper.PageInfo;
-import com.xifdf.registration_system.pojo.Exam;
 import com.xifdf.registration_system.pojo.Message;
-import com.xifdf.registration_system.service.ExamService;
 import com.xifdf.registration_system.service.MessageService;
 import org.springframework.web.bind.annotation.*;
 
